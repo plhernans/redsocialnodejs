@@ -6,6 +6,7 @@ const User = require("../models/User");
 //Importar dependencias y modelos
 const bcrypt = require("bcrypt");
 const mongoosepagination = require("mongoose-pagination");
+const fs = require("fs");
 
 //Importar servicios
 const jwt = require("../services/jwt")
@@ -311,13 +312,75 @@ const update = (req, res) => {
 }
 
 const uploadFile = (req, res) => {
+
+    //Recoger el fichero de imagen y comprobar que existe
+    if(!req.file){
+        return res.status(404).send({
+            status: "error",
+            message: "La peticion no incluye la imagen",
+        })
+    }
+
+    //Conseguir elnombre del archivo
+    let image = req.file.originalname;
+
+    //Sacar la extension del archivo
+    const imageSplit = image.split("\.");
+    const extension = imageSplit[1]; 
+
+    //Comprobar extension
+    if(extension != "png" && extension != "jpg" && extension != "jpeg" && extension != "gif"){
+       
+       //Si no es correcta, se borra el fichero 
+       const filePatch = req.file.path;
+       const fileDete = fs.unlinkSync(filePatch);
+
+       //devoler respuesta negativa
+       return res.status(404).send({
+            status: "error",
+            message: "Extension del fichero invalida",
+        })
+    }
+
+    //Si es correcta, se guarda en la BD
+    User.findByIdAndUpdate(req.user.id, {image: req.file.filename}, {new:true})
+    .then((userUpdated) => {
+        //if(!userUpdated && userUpdated.length ==0){
+            return res.status(200).send({
+                status: "success",
+                user: userUpdated,
+                file: req.file
+            })
+       // }
+    })
+    .catch((error) =>{
+        //devoler respuesta negativa
+       return res.status(500).send({
+            status: "error",
+            message: "Actualizacion de subida de image incorrecta",
+        })
+    })
+}
+
+const avatar = (req, res) => {
+
+    //sacar el parametro de la url
+    const file = req.params.file;
+
+    //Montar el path real de la imagen
+    const filePath = "./upload/avatar/"+file;
+
+    //comprobar que existe
+    fs.stat(filePatch)
+    //el metodo stat me permite comprobar si el fichero existe
+
+
+    //si existe devolver un file
+
     return res.status(200).send({
         status: "success",
-        message: "Image upload",
-        user: req.user,
-        file: req.file,
-        files: req.files
-    }); 
+        message: "controlador funcionando"
+    });
 }
 
 module.exports = {
@@ -327,5 +390,6 @@ module.exports = {
     profile,
     list,
     update,
-    uploadFile
+    uploadFile,
+    avatar
 }
