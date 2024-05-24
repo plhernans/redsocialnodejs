@@ -7,6 +7,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const mongoosepagination = require("mongoose-pagination");
 const fs = require("fs");
+const bbpath = require("path");
 
 //Importar servicios
 const jwt = require("../services/jwt")
@@ -368,19 +369,28 @@ const avatar = (req, res) => {
     const file = req.params.file;
 
     //Montar el path real de la imagen
-    const filePath = "./upload/avatar/"+file;
+    let filePath = "./uploads/avatars/"+file;
 
     //comprobar que existe
-    fs.stat(filePatch)
+
     //el metodo stat me permite comprobar si el fichero existe
+    fs.stat(filePath, (error, exists) => {
+        if(!exists){
+            return res.status(404).send({
+                status: "error",
+                message: "no existe la imagen"
+            });
+        }
+        //si existe devolver un file
+        //El metodo sendFile, recibe una ruta absoulta, para eso importamos una biblioteca propio de nodejs que se llama path
+        return res.sendFile(bbpath.resolve(filePath));
+    })
+    
 
 
-    //si existe devolver un file
+    
 
-    return res.status(200).send({
-        status: "success",
-        message: "controlador funcionando"
-    });
+    
 }
 
 module.exports = {
