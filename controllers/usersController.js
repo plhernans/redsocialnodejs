@@ -288,7 +288,7 @@ const update = (req, res) => {
 
         //Buscar y actualizar otra variante para actualizar datos, y como es una opcion suceptible a erroes lo metemos dentro de un try catch
         try{
-            let userUpdated = await User.findByIdAndUpdate(userIdentity.id, userToUpdate, {new:true});
+            let userUpdated = await User.findByIdAndUpdate({_id: userIdentity.id}, userToUpdate, {new:true});
 
             if(!userUpdated){
                 return res.status(404).send({
@@ -344,7 +344,7 @@ const uploadFile = (req, res) => {
     }
 
     //Si es correcta, se guarda en la BD
-    User.findByIdAndUpdate(req.user.id, {image: req.file.filename}, {new:true})
+    User.findByIdAndUpdate({_id: req.user.id}, {image: req.file.filename}, {new:true})
     .then((userUpdated) => {
         //if(!userUpdated && userUpdated.length ==0){
             return res.status(200).send({
@@ -384,13 +384,7 @@ const avatar = (req, res) => {
         //si existe devolver un file
         //El metodo sendFile, recibe una ruta absoulta, para eso importamos una biblioteca propio de nodejs que se llama path
         return res.sendFile(bbpath.resolve(filePath));
-    })
-    
-
-
-    
-
-    
+    })   
 }
 
 module.exports = {
