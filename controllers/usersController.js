@@ -10,7 +10,9 @@ const fs = require("fs");
 const bbpath = require("path");
 
 //Importar servicios
-const jwt = require("../services/jwt")
+const jwt = require("../services/jwt");
+const followServices = require("../services/followServices");
+const { following } = require("./followsController");
 
 //Acciones de prueba
 const pruebaUser = (req, res) => {
@@ -154,18 +156,22 @@ const profile = (req, res) => {
     //buscar los datos en la bd que pertenece a ese id
     User.findById(iduser)
     .select({password:0, role:0})
-    .then((userReturned) => {
+    .then(async (userReturned) => {
         if(!userReturned || userReturned.length == 0){
             return res.status(200).send({
                 status: "success",
                 message: "El usuario no existe o hay algun error"
             });
         }
+        //Informacion de seguimiento
+        const followInfo = await followServices.followThisUser(req.user.id, iduser)
         //devolver resultado
         return res.status(200).send({
             status: "sucess",
             message: "Profile encontrado",
-            user: userReturned
+            user: userReturned,
+            following: followInfo.following,
+            followers: followInfo.followers
         });
     })
     .catch((error) => {
@@ -201,10 +207,15 @@ const list = (req, res) => {
             });
         }
         //Devolver resultado (posteriormente info de follows)
+        //sacar un array de los ids de los usuarios que me siguen a user1 y a pepe
+        let followUserId = await followServices.followUsersId(req.user.id);
+
         return res.status(200).send({
             status: "success",
             message: "Ruta de listado e usuario",
             users,
+            user_following:followUserId.following,
+            user_followe_me:followUserId.followers,
             page: page,
             itemPerPage,
             total,
