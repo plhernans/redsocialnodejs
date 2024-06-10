@@ -24,8 +24,8 @@ router.get("/profile/:id", check.auth, usersCtrl.profile);
 router.get("/list/:page?", check.auth, usersCtrl.list);
 router.put("/update", check.auth, usersCtrl.update);
 router.post("/upload", [check.auth, upload.single("file0")], usersCtrl.uploadFile);
-router.get("/avatar/:file", check.auth, usersCtrl.avatar);
-
+router.get("/avatar/:file", usersCtrl.avatar);
+router.get("/counters/:id", check.auth, usersCtrl.counters);
 
 //Exportar el router para luego cargarlo posteriormente
 module.exports = router;

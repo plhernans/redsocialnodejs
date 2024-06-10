@@ -17,6 +17,6 @@ const PublicationSchema = Schema({
         type:Date,
         default:Date.now
     }
-})
+});
 
 module.exports = model("Publication", PublicationSchema, "publications");

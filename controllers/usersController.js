@@ -2,10 +2,11 @@
 
 //Importar modelo
 const User = require("../models/User");
+const Publication = require("../models/Publication");
 
 //Importar dependencias y modelos
 const bcrypt = require("bcrypt");
-const mongoosepagination = require("mongoose-pagination");
+// const mongoosepagination = require("mongoose-pagination");
 const fs = require("fs");
 const bbpath = require("path");
 
@@ -278,6 +279,9 @@ const update = (req, res) => {
             let pwd = await bcrypt.hash(userToUpdate.password, 10);
             userToUpdate.password = pwd;
         }
+        else{
+            delete userToUpdate.password;
+        }
 
         //Buscar y actualizar
         // User.findByIdAndUpdate(userIdentity.id, userToUpdate, {new:true})
@@ -398,6 +402,37 @@ const avatar = (req, res) => {
     })   
 }
 
+const counters = async (req, res) =>{
+
+    let userId = req.user.id;
+
+    if(req.params.id){
+        userId=req.params.id
+    }
+
+    try{
+        const following = await Follow.count({"user": userId});
+
+        const followed = await Follow.count({"followed": userId});
+
+        const publication = await Publication.count({"user": userId})
+
+        return res.status(200).send({
+            userId,
+            following: following,
+            followed: followed,
+            publication: publication
+        });
+    }
+    catch(error){
+        return res.status(505).send({
+            status: "error",
+            message: "error en los contadores",
+            error
+        });
+    }
+}
+
 module.exports = {
     pruebaUser,
     registerUser,
@@ -406,5 +441,6 @@ module.exports = {
     list,
     update,
     uploadFile,
-    avatar
+    avatar,
+    counters
 }
