@@ -14,6 +14,7 @@ const bbpath = require("path");
 const jwt = require("../services/jwt");
 const followServices = require("../services/followServices");
 const { following } = require("./followsController");
+const validator = require("../helpers/validator")
 
 //Acciones de prueba
 const pruebaUser = (req, res) => {
@@ -35,6 +36,11 @@ const registerUser = (req, res) => {
             message: "Faltan datos para realizar el registro"
         });
     }
+
+    //VALIDACION DE DATOS
+   
+   
+
     //control de usario duplicados
     User.find({
         $or: [
