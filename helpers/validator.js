@@ -25,9 +25,6 @@ const validarUsuario = (parametros) => {
     if(!validarName || !validarSurname || !validarEmail || !validarPassword || !validarNick || !validarBio){
         throw new Error("No se ha podido validar la informacion");
     }
-    else{
-        console.log("no ha pasado la validacion");
-    }
 }
 
 module.exports = {

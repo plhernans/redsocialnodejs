@@ -1,12 +1,16 @@
 //importar dependencias y modulos
+// import paginate from 'mongoose-paginate-v2';
+
 
 //Importar modelo
 const User = require("../models/User");
 const Publication = require("../models/Publication");
+const Follow = require("../models/Follow");
 
 //Importar dependencias y modelos
 const bcrypt = require("bcrypt");
-// const mongoosepagination = require("mongoose-pagination");
+
+
 const fs = require("fs");
 const bbpath = require("path");
 
@@ -38,7 +42,15 @@ const registerUser = (req, res) => {
     }
 
     //VALIDACION DE DATOS
-   
+    try{
+        validator.validarUsuario(params);
+    }
+    catch (error) {
+        return res.status(400).json({
+            status: "error",
+            message: "No se ha podido validar la informacion"
+        });
+    }
    
 
     //control de usario duplicados
@@ -200,14 +212,16 @@ const list = (req, res) => {
 
     //Consultar con mongoose pagination
     //A este metodo hay que pasarle el numero de pagina en la que estamos y el numero de items por pagina
-    let itemPerPage = 5;
+    let itemsPerPage = 5;
+    const options = {
+        page,
+        limit: itemsPerPage,
+        sort: { created_at: -1 }
+    }
 
-    // let total = User.find().count("_id");
-    // console.log(total);
-    User.find().sort('_id').paginate(page, itemPerPage)
-    .then(async (users) => {
-        let total = await User.find().count();
-        if(!users || users.length == 0){
+    User.find().sort('_id').paginate({}, options)
+    .then(users => {
+        if(!users || users.total <= 0){
             return res.status(404).send({
                 status: "error",
                 message: "No hay usuarios disponibles"
@@ -215,18 +229,16 @@ const list = (req, res) => {
         }
         //Devolver resultado (posteriormente info de follows)
         //sacar un array de los ids de los usuarios que me siguen a user1 y a pepe
-        let followUserId = await followServices.followUsersId(req.user.id);
-
         return res.status(200).send({
             status: "success",
             message: "Ruta de listado e usuario",
             users,
             user_following:followUserId.following,
             user_followe_me:followUserId.followers,
-            page: page,
-            itemPerPage,
-            total,
-            pages: Math.ceil((total/itemPerPage))
+            page: options.page,
+            itemsPerPage: options.limit,
+            total: users.total,
+            pages: Math.ceil((total/itemsPerPage))
         });
     })
     .catch((error) => {
@@ -236,6 +248,42 @@ const list = (req, res) => {
             error
         });
     })
+
+
+
+    // User.find().sort('_id').paginate(page, itemPerPage)
+    // .then(async (users) => {
+    //     let total = await User.find().count();
+    //     if(!users || users.length == 0){
+    //         return res.status(404).send({
+    //             status: "error",
+    //             message: "No hay usuarios disponibles"
+    //         });
+    //     }
+    //     //Devolver resultado (posteriormente info de follows)
+    //     //sacar un array de los ids de los usuarios que me siguen a user1 y a pepe
+    //     let followUserId = await followServices.followUsersId(req.user.id);
+
+    //     return res.status(200).send({
+    //         status: "success",
+    //         message: "Ruta de listado e usuario",
+    //         users,
+    //         user_following:followUserId.following,
+    //         user_followe_me:followUserId.followers,
+    //         page: page,
+    //         itemPerPage,
+    //         total,
+    //         pages: Math.ceil((total/itemPerPage))
+    //     });
+    // })
+    // .catch((error) => {
+    //     return res.status(500).send({
+    //         status: "error",
+    //         message: "Error en la consulta",
+    //         error
+    //     });
+    // })
+    
 }
 
 //Update users....

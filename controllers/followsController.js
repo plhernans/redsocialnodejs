@@ -2,7 +2,7 @@ const Follow = require("../models/Follow");
 const User = require("../models/User");
 
 //Importar dependencias 
-const mongoosepagination = require("mongoose-pagination");
+
 
 //Importar servicios
 const followServices = require("../services/followServices");
