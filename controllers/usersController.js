@@ -204,48 +204,54 @@ const profile = (req, res) => {
 const list = (req, res) => {
     
     //Controlar en que pagina estamos
-    let page = 1;
+    let _page = 1;
     if(req.params.page){
-        page=req.params.page;
+        _page=req.params.page;
     }
-    page = parseInt(page); //convertimos en un entero
+    _page = parseInt(_page); //convertimos en un entero
+
+    let options = {
+        page: _page,
+        limit: 5,
+        collation: {
+          locale: 'en',
+        },
+      };
 
     //Consultar con mongoose pagination
-    //A este metodo hay que pasarle el numero de pagina en la que estamos y el numero de items por pagina
-    let itemsPerPage = 5;
-
-    User.find().sort('_id').paginate(page, itemsPerPage)
+    User.find().sort('_id').paginate({}, options)
     .then(async (users) => {
-         let total = await User.find().count();
+        //let total = await User.find().count();
          if(!users || users.length == 0){
              return res.status(404).send({
                  status: "error",
                  message: "No hay usuarios disponibles"
              });
          }
+         
          //Devolver resultado (posteriormente info de follows)
          //sacar un array de los ids de los usuarios que me siguen a user1 y a pepe
          let followUserId = await followServices.followUsersId(req.user.id);
 
-         return res.status(200).send({
+        return res.status(200).send({
              status: "success",
              message: "Ruta de listado e usuario",
              users,
              user_following:followUserId.following,
              user_followe_me:followUserId.followers,
-             page: page,
-             itemsPerPage,
-             total,
-             pages: Math.ceil((total/itemsPerPage))
-         });
-     })
-     .catch((error) => {
+             page: users.pages,
+             itemsPerPage: users.limit,
+             total: users.totalPages,
+             //pages: Math.ceil((total/itemsPerPage))
+        });
+    })
+    .catch((error) => {
          return res.status(500).send({
              status: "error",
              message: "Error en la consulta",
              error
          });
-     })
+    })
     
 }
 
